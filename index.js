@@ -3,6 +3,9 @@ const bodyParser = require("body-parser");
 
 const users = require("./routes/users");
 const posts = require("./routes/posts");
+const comments = require("./routes/comments") //added for part2 
+
+
 
 const error = require("./utilities/error");
 
@@ -13,7 +16,7 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ extended: true }));
 
-// Logging Middlewaare
+// Logging Middleware
 app.use((req, res, next) => {
   const time = new Date();
 
@@ -21,6 +24,7 @@ app.use((req, res, next) => {
     `-----
 ${time.toLocaleTimeString()}: Received a ${req.method} request to ${req.url}.`
   );
+  //console.log(req.body);
   if (Object.keys(req.body).length > 0) {
     console.log("Containing the data:");
     console.log(`${JSON.stringify(req.body)}`);
@@ -29,32 +33,41 @@ ${time.toLocaleTimeString()}: Received a ${req.method} request to ${req.url}.`
 });
 
 // Valid API Keys.
-//apiKeys = ["perscholas", "ps-example", "hJAsknw-L198sAJD-l3kasx"];
+apiKeys = ["perscholas", "ps-example", "hJAsknw-L198sAJD-l3kasx"];
 
 // New middleware to check for API keys!
 // Note that if the key is not verified,
 // we do not call next(); this is the end.
 // This is why we attached the /api/ prefix
 // to our routing at the beginning!
-// app.use("/api", function (req, res, next) {
-//   var key = req.query["api-key"];
 
-//   // Check for the absence of a key.
-//   if (!key) next(error(400, "API Key Required"));
+//http://localhost:3000/api/?api-key=perscholas
+//http://localhost:3000/api/users?api-key=perscholas
+//http://localhost:3000/api/users/2?api-key=perscholas
+//http://localhost:3000/api/users/4?api-key=perscholas -- PATCH
 
-//   // Check for key validity.
-//   if (apiKeys.indexOf(key) === -1) next(error(401, "Invalid API Key"));
 
-//   // Valid key! Store it in req.key for route access.
-//   req.key = key;
-//   next();
-// });
+
+app.use("/api", function (req, res, next) {
+  var key = req.query["api-key"];
+
+  // Check for the absence of a key.
+  if (!key) next(error(400, "API Key Required"));
+
+  // Check for key validity.
+  if (apiKeys.indexOf(key) === -1) next(error(401, "Invalid API Key"));
+
+  // Valid key! Store it in req.key for route access.
+  req.key = key;
+  next();
+});
 
 // Use our Routes
 app.use("/api/users", users);
 app.use("/api/posts", posts);
+app.use("/api/comments", comments);
 
-// Adding some HATEOAS links.
+// Adding some HATEOAS links. ROOT route
 app.get("/", (req, res) => {
   res.json({
     links: [

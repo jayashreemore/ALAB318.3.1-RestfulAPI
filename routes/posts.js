@@ -4,6 +4,29 @@ const router = express.Router();
 const posts = require("../data/posts");
 const error = require("../utilities/error");
 
+// GET /api/posts?userId=<VALUE>
+router.get("/user", (req, res) => {
+  // Extract userId from query parameter
+  const userId = req.query.userId;
+  console.log("userId : " + userId);
+  // If userId not provided, send 400 error
+  if (!userId) return next(error(400, "userId parameter is required"));
+
+  // Filter posts by userId
+  const userPosts = posts.filter((post) => post.userId == userId);
+
+  // Respond with filtered posts
+  // if (userPosts) res.json({ userPosts });
+  // else next("/");
+  // If no posts are found for the user, return a message
+  if (userPosts.length === 0) {
+    return res.json({ message: "No posts found for the specified userId." });
+  }
+
+  // Return the posts associated with the userId
+  res.json({ userId: userId, posts: userPosts });
+});
+
 router
   .route("/")
   .get((req, res) => {
@@ -14,7 +37,7 @@ router
         type: "GET",
       },
     ];
-
+    console.log("get method post")
     res.json({ posts, links });
   })
   .post((req, res, next) => {

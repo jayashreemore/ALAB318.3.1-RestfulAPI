@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const users = require("../data/users");
+const posts = require("../data/posts");
 const error = require("../utilities/error");
 
 router
@@ -60,6 +61,7 @@ router
     const user = users.find((u, i) => {
       if (u.id == req.params.id) {
         for (const key in req.body) {
+          console.log(users[i][key])
           users[i][key] = req.body[key];
         }
         return true;
@@ -81,4 +83,18 @@ router
     else next();
   });
 
+// GET /api/users/:id/posts
+router.get("/:id/posts", (req, res, next) => {
+  // Find the user by id
+  const user = users.find((u) => u.id == req.params.id);
+
+  // If user not found, send 404 error
+  if (!user) return next(error(404, "User Not Found"));
+
+  // Filter posts by user id
+  const userPosts = posts.filter((post) => post.userId == req.params.id);
+
+  // Respond with user's posts
+  res.json({ userPosts });
+});
 module.exports = router;
